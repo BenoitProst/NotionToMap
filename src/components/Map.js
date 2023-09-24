@@ -33,6 +33,38 @@ function createPopUp(currentFeature) {
       .addTo(map.current);
   };
 
+function addMarkers() {
+  /* For each feature in the GeoJSON object above: */
+  for (const marker of stores.features) {
+  /* Create a div element for the marker. */
+  const el = document.createElement('div');
+  /* Assign a unique `id` to the marker. */
+  el.id = `marker-${marker.properties.id}`;
+  /* Assign the `marker` class to each marker for styling. */
+  el.className = 'marker';
+  
+  el.addEventListener('click', (e) => {
+    /* Fly to the point */
+    flyToLocation(marker);
+    /* Close all other popups and display popup for clicked store */
+    createPopUp(marker);
+    /* Highlight listing in sidebar */
+    const activeItem = document.getElementsByClassName('active');
+    e.stopPropagation();
+    if (activeItem[0]) {
+      activeItem[0].classList.remove('active');
+    }
+    const listing = document.getElementById(`listing-${marker.properties.id}`);
+    listing.classList.add('active');
+  });
+  /**
+  * Create a marker using the div element
+  * defined above and add it to the map.
+  **/
+  new mapboxgl.Marker(el, { offset: [0, -23] })
+  .setLngLat(marker.geometry.coordinates)
+  .addTo(map.current);
+  }};
 
 useEffect(() => {
     if (map.current) return; // initialize map only once
@@ -47,43 +79,56 @@ useEffect(() => {
 useEffect(() => {
     map.current.on('load', () => {
         /* Add the data to your map as a layer */
-        map.current.addLayer({
-          id: 'locations',
-          type: 'circle',
-          /* Add a GeoJSON source containing place coordinates and information. */
-          source: {
-            type: 'geojson',
-            data: stores
-          }
+        if (map.current.getSource("places")) {
+          map.current.removeSource("places");
+      }
+        map.current.addSource('places', {
+          type: 'geojson',
+          data: stores
         });
+        addMarkers();
       });
 });
 
-useEffect(() => {
-    map.current.on('click', (event) => {
-        /* Determine if a feature in the "locations" layer exists at that point. */
-        const features = map.current.queryRenderedFeatures(event.point, {
-          layers: ['locations']
-        });
-      
-        /* If it does not exist, return */
-        if (!features.length) return;
-      
-        const clickedPoint = features[0];
-      
-        /* Fly to the point */
-        flyToLocation(clickedPoint);
-      
-        /* Close all other popups and display popup for clicked store */
-        createPopUp(clickedPoint);
-    
-      });
 
 
-});
+const handleClick = event => {
+  for (const feature of stores.features) {
+    if (event.currentTarget.id === `link-${feature.properties.id}`) {
+      flyToLocation(feature);
+      createPopUp(feature);
+    }
+  }
+  const activeItem = document.getElementsByClassName('active');
+  if (activeItem[0]) {
+    activeItem[0].classList.remove('active');
+  }
+  event.currentTarget.parentNode.classList.add('active');
+}
+
+
 return (
     <div>
-    <div ref={mapContainer} className="map-container" />
+      <div class='sidebar'>
+        <div class='heading'>
+          <h1>Our locations</h1>
+        </div>
+        <div id='listings' class='listings'>
+        {stores.features.map((store, index) => (
+            <div id={`listing-${store.properties.id}`} key={store.properties.id} className = 'item'>
+              <a href='#' className = 'title' id = {`link-${store.properties.id}`} 
+              onClick={handleClick}>
+                {store.properties.address} 
+              </a>
+              <div>
+              {store.properties.city}
+              {store.properties.phone ? ` · ${store.properties.phoneFormatted}` : null} 
+              </div>
+            </div>
+        ))}
+        </div>
+      </div>
+      <div ref={mapContainer} className="map-container" />
     </div>
     );
 }
