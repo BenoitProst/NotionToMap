@@ -1,4 +1,6 @@
-import Map from './Map'
+import Map from './Map';
+import ListingSideBar from './ListingSideBar';
+
 
 function App() {
     return (
@@ -7,7 +9,7 @@ function App() {
       <div class='heading'>
         <h1>Our locations</h1>
       </div>
-      <div id='listings' class='listings'></div>
+      <ListingSideBar />
     </div>
      
       <Map />

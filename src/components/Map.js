@@ -2,10 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
-import stores from '../data/GeolocStore.json'
+import stores from './ListingParsing';
+import identification from '../param/id.json';
+import '../styles/Map.css'
 
 function Map() {
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuaXRvLWdlbyIsImEiOiJjbG0zcHA5dnAyNGJpM2VwM2Z6dDloeHp0In0.wJcDBpyTsem-y6hqz8cXnA';
+mapboxgl.accessToken = identification.TokenMapbox;
 
 const mapContainer = useRef(null);
 const map = useRef(null);
@@ -13,11 +15,23 @@ const [lng, setLng] = useState(-77.034084);
 const [lat, setLat] = useState(38.909671);
 const [zoom, setZoom] = useState(13);
 
-
-/* Assign a unique ID to each store */
-stores.features.forEach(function (store, i) {
-    store.properties.id = i;
-  });
+function flyToLocation(currentFeature) {
+    map.current.flyTo({
+      center: currentFeature.geometry.coordinates,
+      zoom: 15
+    });
+  };
+  
+function createPopUp(currentFeature) {
+    const popUps = document.getElementsByClassName('mapboxgl-popup');
+    /** Check if there is already a popup on the map and if so, remove it */
+    if (popUps[0]) popUps[0].remove();
+  
+    const popup = new mapboxgl.Popup({ closeOnClick: false })
+      .setLngLat(currentFeature.geometry.coordinates)
+      .setHTML(`<h3>Sweetgreen</h3><h4>${currentFeature.properties.address}</h4>`)
+      .addTo(map.current);
+  };
 
 
 useEffect(() => {
@@ -28,7 +42,7 @@ useEffect(() => {
     center: [lng, lat],
     zoom: zoom
     });
-    });
+});
 
 useEffect(() => {
     map.current.on('load', () => {
@@ -43,8 +57,30 @@ useEffect(() => {
           }
         });
       });
-    });
+});
 
+useEffect(() => {
+    map.current.on('click', (event) => {
+        /* Determine if a feature in the "locations" layer exists at that point. */
+        const features = map.current.queryRenderedFeatures(event.point, {
+          layers: ['locations']
+        });
+      
+        /* If it does not exist, return */
+        if (!features.length) return;
+      
+        const clickedPoint = features[0];
+      
+        /* Fly to the point */
+        flyToLocation(clickedPoint);
+      
+        /* Close all other popups and display popup for clicked store */
+        createPopUp(clickedPoint);
+    
+      });
+
+
+});
 return (
     <div>
     <div ref={mapContainer} className="map-container" />
