@@ -2,17 +2,17 @@ import React, { useRef, useEffect, useState } from 'react';
 
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
-import stores from './ListingParsing';
+
 import identification from '../param/id.json';
 import '../styles/Map.css'
 
-function Map() {
+function Map({data, setdata}) {
 mapboxgl.accessToken = identification.TokenMapbox;
 
 const mapContainer = useRef(null);
 const map = useRef(null);
-const [lng, setLng] = useState(-77.034084);
-const [lat, setLat] = useState(38.909671);
+const [lng, setLng] = useState(2.3760);
+const [lat, setLat] = useState(48.8608);
 const [zoom, setZoom] = useState(13);
 
 function flyToLocation(currentFeature) {
@@ -29,13 +29,14 @@ function createPopUp(currentFeature) {
   
     const popup = new mapboxgl.Popup({ closeOnClick: false })
       .setLngLat(currentFeature.geometry.coordinates)
-      .setHTML(`<h3>Sweetgreen</h3><h4>${currentFeature.properties.address}</h4>`)
+      .setHTML(`<h3>${currentFeature.properties.Name}</h3><h4>${currentFeature.properties.Style.map((style, index) => (
+        `<div><span class="tag ${style.color}" key={popup-${style.id}}>${style.name}</span></div>`)).join('')}</h4>`)
       .addTo(map.current);
   };
 
 function addMarkers() {
   /* For each feature in the GeoJSON object above: */
-  for (const marker of stores.features) {
+  for (const marker of data) {
   /* Create a div element for the marker. */
   const el = document.createElement('div');
   /* Assign a unique `id` to the marker. */
@@ -84,7 +85,7 @@ useEffect(() => {
       }
         map.current.addSource('places', {
           type: 'geojson',
-          data: stores
+          data: data
         });
         addMarkers();
       });
@@ -93,7 +94,7 @@ useEffect(() => {
 
 
 const handleClick = event => {
-  for (const feature of stores.features) {
+  for (const feature of data) {
     if (event.currentTarget.id === `link-${feature.properties.id}`) {
       flyToLocation(feature);
       createPopUp(feature);
@@ -104,25 +105,28 @@ const handleClick = event => {
     activeItem[0].classList.remove('active');
   }
   event.currentTarget.parentNode.classList.add('active');
-}
+};
 
 
 return (
     <div>
       <div class='sidebar'>
         <div class='heading'>
-          <h1>Our locations</h1>
+          <h1>Restaurants</h1>
         </div>
         <div id='listings' class='listings'>
-        {stores.features.map((store, index) => (
-            <div id={`listing-${store.properties.id}`} key={store.properties.id} className = 'item'>
-              <a href='#' className = 'title' id = {`link-${store.properties.id}`} 
+        {data.map((restaurant, index) => (
+            <div id={`listing-${restaurant.properties.id}`} key={restaurant.properties.id} className = 'item'>
+              <a href='#' className = 'title' id = {`link-${restaurant.properties.id}`} 
               onClick={handleClick}>
-                {store.properties.address} 
+                {restaurant.properties.Name} 
               </a>
               <div>
-              {store.properties.city}
-              {store.properties.phone ? ` · ${store.properties.phoneFormatted}` : null} 
+              {restaurant.properties.Adresse}
+              </div>
+              <div>
+                {restaurant.properties.Style.map((style, index) => (
+                <span class={`tag ${style.color}`} key={`listing-${style.id}`}>{style.name}</span>))}
               </div>
             </div>
         ))}

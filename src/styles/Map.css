@@ -95,3 +95,51 @@
 .mapboxgl-popup {
   padding-bottom: 50px;
 }
+
+.tag {
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: smaller;
+  margin-left: .2rem;
+
+  
+}
+.orange{
+   background-color: #FAEBDD;
+  }
+
+.default{
+   background-color: #CECDCA;
+  }
+
+.gray{
+  background-color: #e3e2e0;
+  }  
+
+.brown{
+  background-color: #efe0da;
+  }
+
+.yellow{
+  background-color: #d3e5ef;
+  }
+
+.green{
+  background-color: #dbeddb;
+  } 
+
+.blue{
+  background-color: #d3e5ef;
+  } 
+
+.purple{
+  background-color: #EAE4F2;
+  } 
+
+.pink{
+  background-color: #f4e0e9;
+  }   
+
+.red{
+  background-color: #FBE4E4;
+  }
