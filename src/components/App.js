@@ -10,7 +10,7 @@ function App() {
   const [data, setdata] = useState({})
 
       useEffect(() => {
-          fetch(`http://localhost:5067/api/restaurant`)
+          fetch(`https://notionrestaurantmap.zinebbenoit.com/api/restaurant`)
           .then((response) => response.json())
           .then(({ data }) => {
           setdata(data)
